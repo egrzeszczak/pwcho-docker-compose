@@ -1,0 +1,56 @@
+version: "3.7"
+
+# Definicja sieci
+networks:
+  frontend:
+    name: frontend
+    driver: bridge
+  backend:
+    name: backend
+    driver: bridge
+
+services: 
+  # Serwer nginx
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    image: web:6z1
+    container_name: nginx
+    ports:
+      - "6666:80"
+    volumes:
+      - ./shared/htdocs:/var/www/html
+      - ./shared/site.conf:/etc/nginx/conf.d/site.conf
+    links:
+      - php7
+    networks:
+      - frontend
+      - backend
+
+  # Serwer PHP
+  php7:
+    build:
+      context: ./php
+      dockerfile: Dockerfile
+    image: php:6z1
+    container_name: php7
+    volumes:
+      - ./shared/htdocs:/var/www/html
+    networks:
+      - backend
+
+  # Serwer MySQL
+  mysql5:
+    build:
+      context: ./db
+      dockerfile: Dockerfile
+    image: mysql:6z1
+    container_name: mysql5
+    networks:
+      - backend
+    environment: 
+      MYSQL_DATABASE: "database"
+      MYSQL_ROOT_PASSWORD: "admin"
+      MYSQL_PASSWORD: "admin"
+      MYSQL_USER: "admin"
